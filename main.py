@@ -41,7 +41,7 @@ def run_pipeline(source :str, language :str = "english") -> dict:
 
 if __name__ == "__main__":
     # CLI entry point
-    source = input("Enter YouTube URL or local file path: ").strip()
+    source = input("Enter video/audio file path: ").strip()
     language = input("Language (english/hinglish): ").strip() or "english"
     result = run_pipeline(source, language)
 

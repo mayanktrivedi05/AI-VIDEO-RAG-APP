@@ -1,4 +1,3 @@
-import yt_dlp
 from pydub import AudioSegment
 import os
 import re
@@ -6,6 +5,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 
 DOWNLOAD_DIR = 'downloades'
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+<<<<<<< HEAD
 
 def extract_youtube_video_id(url: str) -> str:
     pattern = r'(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})'
@@ -115,12 +115,14 @@ def download_youtube_audio(url: str) -> str:
             return wav_filename
         return raw_filename
 
+=======
+>>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)
 
 def convert_to_wav(input_path: str) -> str:
     """Convert any audio/video file to WAV format using pydub."""
     output_path = os.path.splitext(input_path)[0] + "_converted.wav"
     audio = AudioSegment.from_file(input_path)
-    audio = audio.set_channels(1).set_frame_rate(16000) #16khz
+    audio = audio.set_channels(1).set_frame_rate(16000) # 16kHz mono
     audio.export(output_path, format="wav")
     return output_path
 
@@ -130,16 +132,23 @@ def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
     chunk_ms = chunk_minutes * 60 * 1000 
 
     chunks = []
+<<<<<<< HEAD
 
+=======
+>>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)
     for i, start in enumerate(range(0, len(audio), chunk_ms)):
         chunk = audio[start : start + chunk_ms]
         chunk_path = f"{wav_path}_chunk_{i}.wav"
         chunk.export(chunk_path, format="wav")
+<<<<<<< HEAD
 
+=======
+>>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)
         chunks.append(chunk_path)
     
     return chunks
 
+<<<<<<< HEAD
 def process_input(source: str) -> tuple:
     """
     Returns (result_data, is_direct_transcript).
@@ -157,8 +166,18 @@ def process_input(source: str) -> tuple:
     else:
         print("Detected local file. Converting to WAV...")
         wav_path = convert_to_wav(source)
+=======
+def process_input(source: str) -> list:
+    """Process video/audio file path and return audio chunk file paths."""
+    print("Converting file to WAV...")
+    wav_path = convert_to_wav(source)
+>>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)
 
     print("Chunking audio...")
     chunks = chunk_audio(wav_path)
     print(f"Audio ready — {len(chunks)} chunk(s) created.")
+<<<<<<< HEAD
     return (chunks, False)
+=======
+    return chunks
+>>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)

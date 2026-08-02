@@ -420,19 +420,13 @@ with st.sidebar:
     
     input_tab = st.radio(
         "Source Type",
-        ["🔗 YouTube URL", "📁 Upload File", "💻 Local Path"],
+        ["📁 Upload File", "💻 Local Path"],
         horizontal=True,
         label_visibility="collapsed"
     )
     
     source = ""
-    if input_tab == "🔗 YouTube URL":
-        source = st.text_input(
-            "YouTube Video URL",
-            placeholder="https://www.youtube.com/watch?v=...",
-            help="Enter any valid YouTube video link"
-        )
-    elif input_tab == "📁 Upload File":
+    if input_tab == "📁 Upload File":
         uploaded_file = st.file_uploader(
             "Upload Video / Audio",
             type=["mp4", "mov", "avi", "mp3", "wav", "m4a"],
@@ -524,7 +518,7 @@ st.markdown("""
 # ─── Process Execution Pipeline ──────────────────────────────────────────────────
 if run_btn:
     if not source.strip():
-        st.error("⚠️ Please specify a valid YouTube URL, upload a file, or enter a file path.")
+        st.error("⚠️ Please upload a video/audio file or enter a valid file path.")
     else:
         st.session_state.pipeline_running = True
         st.session_state.result = None
