@@ -10,6 +10,7 @@ ffmpeg-python>=0.2.0
 openai-whisper>=20231117
 torch>=2.2.0
 torchaudio>=2.2.0
+torchvision>=0.17.0
 
 # ---- Translation (Hindi -> English) ----
 deep-translator>=1.11.4
@@ -23,6 +24,7 @@ mistralai>=0.4.2
 
 # ---- RAG: Vector store + Embeddings ----
 chromadb>=0.5.4
+langchain-chroma>=0.1.2
 langchain-huggingface>=0.0.3
 sentence-transformers>=3.0.1
 
@@ -35,4 +37,4 @@ python-dotenv>=1.0.1
 tiktoken>=0.7.0
 numpy>=1.26.4
 requests>=2.32.3
-protobuf==3.20.3
+protobuf>=3.20.3
