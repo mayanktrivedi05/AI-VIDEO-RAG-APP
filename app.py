@@ -2,6 +2,9 @@ import streamlit as st
 import time
 import os
 import json
+
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
 from datetime import datetime
 from dotenv import load_dotenv
 
