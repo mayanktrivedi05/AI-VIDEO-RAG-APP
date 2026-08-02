@@ -539,17 +539,12 @@ if run_btn:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                with st.spinner("1/5 🔊 Extracting Transcript / Audio..."):
-                    result_data, is_direct = process_input(source)
+                with st.spinner("1/5 🔊 Extracting & Chunking Audio..."):
+                    chunks = process_input(source)
                 
-                if is_direct:
-                    transcript = result_data
-                    chunk_count = 1
-                    st.toast("⚡ Instant YouTube Transcript Extracted!", icon="✨")
-                else:
-                    with st.spinner("2/5 📝 Transcribing Speech to Text..."):
-                        transcript = transcribe_all(result_data, language)
-                    chunk_count = len(result_data)
+                with st.spinner("2/5 📝 Transcribing Speech to Text..."):
+                    transcript = transcribe_all(chunks, language)
+                chunk_count = len(chunks)
                 
                 with st.spinner("3/5 🏷️ Generating Executive Title & Summary..."):
                     title = generate_title(transcript)
