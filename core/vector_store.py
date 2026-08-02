@@ -1,13 +1,11 @@
 import os 
-import shutil
 from langchain_chroma import Chroma 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-CHROMA_DIR = "vector_db"
-COLLECTION_NAME = "meeting_transcript"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+_CURRENT_VECTOR_STORE = None
 
 def get_embeddings():
     return HuggingFaceEmbeddings(
@@ -15,18 +13,9 @@ def get_embeddings():
         model_kwargs = {"device" : 'cpu'}
     )
 
-def clear_vector_store():
-    """Clear previous vector database to prevent data leak across videos."""
-    if os.path.exists(CHROMA_DIR):
-        try:
-            shutil.rmtree(CHROMA_DIR, ignore_errors=True)
-            print("Cleared previous vector store.")
-        except Exception as e:
-            print(f"Warning clearing vector store: {e}")
-
-def build_vector_store(transcript : str)->Chroma:
-    print("Building vector Store...")
-    clear_vector_store()
+def build_vector_store(transcript: str) -> Chroma:
+    global _CURRENT_VECTOR_STORE
+    print("Building in-memory Vector Store...")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size = 500,
@@ -37,36 +26,34 @@ def build_vector_store(transcript : str)->Chroma:
     documents = [
         Document(
             page_content = text,
-            metadata = {"chunk_id":i}
+            metadata = {"chunk_id": i}
         )
         for i, text in enumerate(texts)
     ]
 
     embeddings = get_embeddings()
 
+    # In-Memory Chroma Vector Store (0% SQLite File Lock / Code 14 Error)
     vector_store = Chroma.from_documents(
         documents = documents,
-        embedding = embeddings,
-        persist_directory = CHROMA_DIR,
-        collection_name = COLLECTION_NAME
+        embedding = embeddings
     )
 
-    print(f"Vector Store Built with {len(documents)} chunks")
+    _CURRENT_VECTOR_STORE = vector_store
+    print(f"Vector Store Built in memory with {len(documents)} chunks.")
     return vector_store
 
 
-def load_vector_store() ->Chroma:
-    embeddings = get_embeddings()
-    vector_store = Chroma(
-        persist_directory = CHROMA_DIR,
-        embedding_function = embeddings,
-        collection_name = COLLECTION_NAME
-    )
-    return vector_store
+def load_vector_store() -> Chroma:
+    global _CURRENT_VECTOR_STORE
+    return _CURRENT_VECTOR_STORE
 
-def get_retriever(k : int = 3):
+
+def get_retriever(k: int = 3):
     vector_store = load_vector_store()
+    if vector_store is None:
+        raise RuntimeError("Vector store is not initialized yet.")
     return vector_store.as_retriever(
         search_type = "similarity",
-        search_kwargs = {"k":k}
+        search_kwargs = {"k": k}
     )
