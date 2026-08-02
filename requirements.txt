@@ -1,5 +1,3 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-
 # ---- UI ----
 streamlit>=1.36.0
 
@@ -8,13 +6,11 @@ yt-dlp>=2024.7.1
 pydub>=0.25.1
 ffmpeg-python>=0.2.0
 
-# ---- Transcription (local Whisper) ----
+# ---- Transcription ----
 openai-whisper>=20231117
-torch>=2.2.0
-torchaudio>=2.2.0
 torchvision>=0.17.0
 
-# ---- Translation (Hindi -> English) ----
+# ---- Translation ----
 deep-translator>=1.11.4
 
 # ---- LangChain + LCEL + Mistral ----
@@ -30,13 +26,10 @@ langchain-chroma>=0.1.2
 langchain-huggingface>=0.0.3
 sentence-transformers>=3.0.1
 
-# ---- PDF / TXT export ----
+# ---- Export & Utilities ----
 reportlab>=4.2.2
 fpdf2>=2.7.9
-
-# ---- Utilities ----
 python-dotenv>=1.0.1
 tiktoken>=0.7.0
 numpy>=1.26.4
 requests>=2.32.3
-protobuf>=3.20.3
