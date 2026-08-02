@@ -5,20 +5,28 @@ from pydub import AudioSegment
 from concurrent.futures import ThreadPoolExecutor
 
 # Sarvam's sync STT-translate API rejects audio longer than 30s.
-# We slice each chunk into 25s pieces (with a 5s safety margin) before sending.
 SARVAM_PIECE_SECONDS = 25
 
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 
-def transcribe_chunk_whisper(chunk_path: str) -> str:
-    """Transcribe an audio chunk using OpenAI Whisper (local CPU execution)."""
-    print(f"Loading Whisper model '{WHISPER_MODEL}'...")
-    model = whisper.load_model(WHISPER_MODEL)
+_MODEL_CACHE = {}
 
-    print(f"Transcribing {chunk_path} with Whisper...")
-    result = model.transcribe(chunk_path)
-    return result["text"]
+def get_whisper_model():
+    """Cache loaded Whisper model in memory so it's not reloaded from disk on every chunk."""
+    if WHISPER_MODEL not in _MODEL_CACHE:
+        print(f"Loading Whisper model '{WHISPER_MODEL}' into CPU memory (one-time initialization)...")
+        _MODEL_CACHE[WHISPER_MODEL] = whisper.load_model(WHISPER_MODEL)
+    return _MODEL_CACHE[WHISPER_MODEL]
+
+
+def transcribe_chunk_whisper(chunk_path: str) -> str:
+    """Transcribe an audio chunk using cached OpenAI Whisper with CPU optimizations."""
+    model = get_whisper_model()
+    print(f"Transcribing {chunk_path} with Whisper (fp16=False)...")
+    # fp16=False prevents CPU warning and speeds up CPU inference
+    result = model.transcribe(chunk_path, fp16=False, language="en")
+    return result.get("text", "")
 
 
 def _send_to_sarvam(piece_path: str) -> str:
@@ -82,7 +90,7 @@ def transcribe_chunk(chunk_path: str, language: str = "english") -> str:
         print("Language set to Hinglish — using Sarvam AI (saaras:v2.5)...")
         return transcribe_chunk_sarvam(chunk_path)
     else:
-        print("Language set to English — using Whisper (base)...")
+        print("Language set to English — using Whisper (cached base model)...")
         return transcribe_chunk_whisper(chunk_path)
 
 
