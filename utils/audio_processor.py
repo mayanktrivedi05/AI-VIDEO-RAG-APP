@@ -13,13 +13,13 @@ def extract_youtube_video_id(url: str) -> str:
     return match.group(1) if match else None
 
 def get_youtube_transcript_text(url: str) -> str:
-    """Attempt direct transcript extraction from YouTube (0% 403 error)."""
+    """Attempt direct transcript extraction from YouTube."""
     video_id = extract_youtube_video_id(url)
     if not video_id:
         return None
     try:
         api = YouTubeTranscriptApi()
-        transcript = api.get_transcript(video_id, languages=['en', 'hi', 'en-IN'])
+        transcript = api.fetch(video_id)
         text = " ".join([t['text'] for t in transcript if t.get('text')])
         if len(text.strip()) > 30:
             print(f"Successfully fetched YouTube direct transcript ({len(text.split())} words).")
@@ -30,6 +30,14 @@ def get_youtube_transcript_text(url: str) -> str:
 
 def download_youtube_audio(url: str) -> str:
     output_path = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
+    
+    # Handle optional YOUTUBE_COOKIES from env / secrets
+    cookies_content = os.getenv("YOUTUBE_COOKIES")
+    cookies_file = os.path.join(DOWNLOAD_DIR, "cookies.txt")
+    if cookies_content and not os.path.exists(cookies_file):
+        with open(cookies_file, "w") as f:
+            f.write(cookies_content)
+
     ydl_opts = {
         "format": "ba/ba*/bestaudio/best",
         "outtmpl": output_path,
@@ -50,10 +58,14 @@ def download_youtube_audio(url: str) -> str:
         },
         "extractor_args": {
             "youtube": {
-                "player_client": ["tv_embedded", "web_creator", "android_vr", "ios", "mweb"]
+                "player_client": ["android", "ios", "web"]
             }
         }
     }
+
+    if os.path.exists(cookies_file):
+        ydl_opts["cookiefile"] = cookies_file
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         raw_filename = ydl.prepare_filename(info)

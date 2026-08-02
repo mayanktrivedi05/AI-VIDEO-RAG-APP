@@ -593,7 +593,19 @@ if run_btn:
 
         except Exception as e:
             st.session_state.pipeline_running = False
-            progress_box.error(f"❌ Error during processing: {str(e)}")
+            err_msg = str(e)
+            progress_box.error(f"❌ Error during processing: {err_msg}")
+            
+            if "403" in err_msg or "Forbidden" in err_msg or "Sign in" in err_msg or "RequestBlocked" in err_msg:
+                st.warning("""
+                🔒 **YouTube Cloud IP Restriction (HTTP 403 / Bot Block):**
+                YouTube blocks automated video downloads originating from cloud server IPs (like Streamlit Cloud / AWS).
+                
+                💡 **100% Working Solutions:**
+                1. **📁 Direct File Upload (Recommended):** Select the **`📁 Upload File`** tab in the sidebar and upload your video/audio file (MP4, MP3, WAV, M4A) directly!
+                2. **Local Execution:** Run the app locally on your machine (`streamlit run app.py`).
+                3. **Add Cookies:** Provide `YOUTUBE_COOKIES` in Streamlit Cloud Secrets.
+                """)
 
 # ─── Results Dashboard View ──────────────────────────────────────────────────────
 if st.session_state.result is not None:
