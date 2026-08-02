@@ -1,14 +1,7 @@
 # ---- UI ----
 streamlit>=1.36.0
 
-<<<<<<< HEAD
-# ---- YouTube / Audio handling ----
-yt-dlp
-pytubefix
-youtube-transcript-api>=0.6.2
-=======
 # ---- Audio Processing ----
->>>>>>> b9bdd01 (Revert all YouTube URL setup and simplify app to direct file upload & local file path)
 pydub>=0.25.1
 ffmpeg-python>=0.2.0
 
