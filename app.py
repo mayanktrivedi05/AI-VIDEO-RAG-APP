@@ -13,22 +13,21 @@ from core.rag_engine import build_rag_chain, ask_question
 
 load_dotenv()
 
-# Sync Streamlit Cloud Secrets to os.environ
-try:
-    if hasattr(st, "secrets"):
-        for k, v in st.secrets.items():
-            if isinstance(v, str):
-                os.environ[k] = v
-except Exception:
-    pass
-
-# ─── Page Configuration ──────────────────────────────────────────────────────────
+# ─── Page Configuration (MUST BE FIRST STREAMLIT COMMAND) ──────────────────────
 st.set_page_config(
     page_title="VideoRAG Pro • AI Meeting & Video Intelligence",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Sync Streamlit Cloud Secrets to os.environ
+try:
+    for k, v in st.secrets.items():
+        if isinstance(v, str):
+            os.environ[k] = v
+except Exception:
+    pass
 
 # ─── Custom Cyber-Glass CSS Styling ──────────────────────────────────────────────
 st.markdown("""
