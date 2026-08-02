@@ -49,8 +49,11 @@ def load_vector_store() -> Chroma:
     return _CURRENT_VECTOR_STORE
 
 
-def get_retriever(k: int = 3):
-    vector_store = load_vector_store()
+def get_retriever(vector_store=None, k: int = 3):
+    if vector_store is None or isinstance(vector_store, int):
+        if isinstance(vector_store, int):
+            k = vector_store
+        vector_store = load_vector_store()
     if vector_store is None:
         raise RuntimeError("Vector store is not initialized yet.")
     return vector_store.as_retriever(
