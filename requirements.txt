@@ -3,6 +3,7 @@ streamlit>=1.36.0
 
 # ---- YouTube / Audio handling ----
 yt-dlp
+youtube-transcript-api>=0.6.2
 pydub>=0.25.1
 ffmpeg-python>=0.2.0
 
