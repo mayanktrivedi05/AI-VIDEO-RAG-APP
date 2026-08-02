@@ -30,40 +30,43 @@ def build_vector_store(transcript : str)->Chroma:
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size = 500,
-        chunk_overlap = 50
+        chunk_overlap = 50,
     )
-    chunks = splitter.split_text(transcript)
+    texts = splitter.split_text(transcript)
 
-    docs = [
-        Document(page_content=chunk, metadata = {'chunk_index' : i})
-        for i,chunk in enumerate(chunks)
+    documents = [
+        Document(
+            page_content = text,
+            metadata = {"chunk_id":i}
+        )
+        for i, text in enumerate(texts)
     ]
 
     embeddings = get_embeddings()
+
     vector_store = Chroma.from_documents(
-        documents= docs,
-        embedding=embeddings,
-        collection_name=COLLECTION_NAME,
-        persist_directory=CHROMA_DIR
+        documents = documents,
+        embedding = embeddings,
+        persist_directory = CHROMA_DIR,
+        collection_name = COLLECTION_NAME
     )
 
+    print(f"Vector Store Built with {len(documents)} chunks")
     return vector_store
 
 
 def load_vector_store() ->Chroma:
     embeddings = get_embeddings()
     vector_store = Chroma(
-        collection_name=COLLECTION_NAME,
-        embedding_function= embeddings,
-        persist_directory=CHROMA_DIR
+        persist_directory = CHROMA_DIR,
+        embedding_function = embeddings,
+        collection_name = COLLECTION_NAME
     )
-
     return vector_store
 
-def get_retriever(vector_store : Chroma, k :int = 4):
+def get_retriever(k : int = 3):
+    vector_store = load_vector_store()
     return vector_store.as_retriever(
-        search_type = 'similarity',
+        search_type = "similarity",
         search_kwargs = {"k":k}
     )
-
-

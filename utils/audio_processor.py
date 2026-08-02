@@ -12,7 +12,6 @@ def convert_to_wav(input_path: str) -> str:
     audio.export(output_path, format="wav")
     return output_path
 
-
 def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
     audio = AudioSegment.from_wav(wav_path)
     chunk_ms = chunk_minutes * 60 * 1000 
@@ -27,7 +26,7 @@ def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
     return chunks
 
 def process_input(source: str) -> list:
-    """Process video/audio file path and return audio chunk file paths."""
+    """Process uploaded or local video/audio file and return chunk file paths."""
     print("Converting file to WAV...")
     wav_path = convert_to_wav(source)
 
