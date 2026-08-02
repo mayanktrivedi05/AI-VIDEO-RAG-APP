@@ -19,7 +19,7 @@ def build_rag_chain(transcript:str):
 
     vector_store = build_vector_store(transcript)
 
-    retriever = get_retriever(k = 4)
+    retriever = get_retriever(4)
 
     llm = get_llm()
 
