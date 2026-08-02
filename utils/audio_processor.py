@@ -34,7 +34,7 @@ def download_youtube_audio(url: str) -> str:
     # Handle optional YOUTUBE_COOKIES from env / secrets
     cookies_content = os.getenv("YOUTUBE_COOKIES")
     cookies_file = os.path.join(DOWNLOAD_DIR, "cookies.txt")
-    if cookies_content and not os.path.exists(cookies_file):
+    if cookies_content:
         with open(cookies_file, "w") as f:
             f.write(cookies_content)
 
