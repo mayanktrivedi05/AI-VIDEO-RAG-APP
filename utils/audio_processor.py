@@ -31,12 +31,21 @@ def get_youtube_transcript_text(url: str) -> str:
 def download_youtube_audio(url: str) -> str:
     output_path = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
     
-    # Handle optional YOUTUBE_COOKIES from env / secrets
+    # Check for cookies.txt in root or downloades dir or env
+    root_cookies = "cookies.txt"
+    dir_cookies = os.path.join(DOWNLOAD_DIR, "cookies.txt")
     cookies_content = os.getenv("YOUTUBE_COOKIES")
-    cookies_file = os.path.join(DOWNLOAD_DIR, "cookies.txt")
+    
     if cookies_content:
-        with open(cookies_file, "w") as f:
+        with open(dir_cookies, "w") as f:
             f.write(cookies_content)
+        cookiefile_to_use = dir_cookies
+    elif os.path.exists(root_cookies):
+        cookiefile_to_use = root_cookies
+    elif os.path.exists(dir_cookies):
+        cookiefile_to_use = dir_cookies
+    else:
+        cookiefile_to_use = None
 
     ydl_opts = {
         "format": "ba/ba*/bestaudio/best",
@@ -58,13 +67,13 @@ def download_youtube_audio(url: str) -> str:
         },
         "extractor_args": {
             "youtube": {
-                "player_client": ["android", "ios", "web"]
+                "player_client": ["web", "android"]
             }
         }
     }
 
-    if os.path.exists(cookies_file):
-        ydl_opts["cookiefile"] = cookies_file
+    if cookiefile_to_use:
+        ydl_opts["cookiefile"] = cookiefile_to_use
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
