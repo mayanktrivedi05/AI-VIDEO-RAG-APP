@@ -28,7 +28,32 @@ def get_youtube_transcript_text(url: str) -> str:
         print(f"Direct YouTube transcript API failed: {e}")
     return None
 
+def download_with_pytubefix(url: str) -> str:
+    """Download audio using pytubefix to bypass 403 Forbidden cloud IP blocks."""
+    from pytubefix import YouTube
+    yt = YouTube(url)
+    stream = yt.streams.filter(only_audio=True).first()
+    out_file = stream.download(output_path=DOWNLOAD_DIR)
+    base, _ = os.path.splitext(out_file)
+    wav_file = base + ".wav"
+    audio = AudioSegment.from_file(out_file)
+    audio = audio.set_channels(1).set_frame_rate(16000)
+    audio.export(wav_file, format="wav")
+    if os.path.exists(out_file) and out_file != wav_file:
+        try:
+            os.remove(out_file)
+        except Exception:
+            pass
+    return wav_file
+
 def download_youtube_audio(url: str) -> str:
+    # Try pytubefix first (bypasses datacenter 403 blocks)
+    try:
+        print("Attempting audio download with pytubefix...")
+        return download_with_pytubefix(url)
+    except Exception as pe:
+        print(f"pytubefix download failed ({pe}). Trying yt-dlp with cookies...")
+
     output_path = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
     
     # Check for cookies.txt in root or downloades dir or env
@@ -121,7 +146,7 @@ def process_input(source: str) -> tuple:
         if direct_text:
             return (direct_text, True)
 
-        print("Direct transcript unavailable. Downloading audio via yt-dlp...")
+        print("Direct transcript unavailable. Downloading audio...")
         wav_path = download_youtube_audio(source)
     else:
         print("Detected local file. Converting to WAV...")
