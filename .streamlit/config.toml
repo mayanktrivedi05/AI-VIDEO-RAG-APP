@@ -1,8 +1,8 @@
 [server]
-headless = false
+headless = true
 enableCORS = false
 enableXsrfProtection = false
-fileWatcherType = "auto"
+fileWatcherType = "none"
 
 
 [global]
