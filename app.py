@@ -13,6 +13,15 @@ from core.rag_engine import build_rag_chain, ask_question
 
 load_dotenv()
 
+# Sync Streamlit Cloud Secrets to os.environ
+try:
+    if hasattr(st, "secrets"):
+        for k, v in st.secrets.items():
+            if isinstance(v, str):
+                os.environ[k] = v
+except Exception:
+    pass
+
 # ─── Page Configuration ──────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="VideoRAG Pro • AI Meeting & Video Intelligence",
