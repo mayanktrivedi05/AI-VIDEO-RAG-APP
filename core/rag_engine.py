@@ -3,7 +3,7 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-from core.vector_store import build_vector_store, load_vector_store, get_retriever
+from core.vector_store import build_vector_store, load_vector_store
 
 def get_llm():
     return ChatMistralAI(
@@ -15,19 +15,20 @@ def get_llm():
 def format_docs(docs):
     return "\n\n".join([doc.page_content for doc in docs])
 
-def build_rag_chain(transcript:str):
+def build_rag_chain(transcript: str):
 
     vector_store = build_vector_store(transcript)
 
-    retriever = get_retriever(4)
+    # Direct retriever creation (no wrapper function signature issues)
+    retriever = vector_store.as_retriever(search_kwargs={"k": 4})
 
     llm = get_llm()
 
     prompt = ChatPromptTemplate.from_messages(
-
-        [(
-            "system",
-            """You are an expert meeting assistant. Answer the user's question 
+        [
+            (
+                "system",
+                """You are an expert meeting assistant. Answer the user's question 
 based ONLY on the meeting transcript context provided below.
 
 If the answer is not found in the context, say: 
@@ -37,19 +38,20 @@ Always be concise and precise. If quoting someone, mention it clearly.
 
 Context from meeting transcript:
 {context}""",
-        ),
-        ("human", "{question}"),
-    ]
+            ),
+            ("human", "{question}"),
+        ]
     )
 
-    #full LCEL Rag pipeline 
-
+    # Full LCEL RAG pipeline 
     rag_chain = (
-
-        {"context" : retriever | RunnableLambda(format_docs),
-         "question": RunnablePassthrough()
-         }
-         |prompt|llm|StrOutputParser()
+        {
+            "context": retriever | RunnableLambda(format_docs),
+            "question": RunnablePassthrough()
+        }
+        | prompt
+        | llm
+        | StrOutputParser()
     )
 
     return rag_chain
@@ -57,7 +59,10 @@ Context from meeting transcript:
 
 def load_rag_chain():
     vector_store = load_vector_store()
-    retriver = get_retriever()
+    if vector_store is None:
+        raise RuntimeError("Vector store is not initialized.")
+    
+    retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
     llm = get_llm()
     prompt = ChatPromptTemplate.from_messages([
@@ -79,7 +84,7 @@ Context from meeting transcript:
 
     rag_chain = (
         {
-            "context":  retriver| RunnableLambda(format_docs),
+            "context": retriever | RunnableLambda(format_docs),
             "question": RunnablePassthrough(),
         }
         | prompt
@@ -90,8 +95,8 @@ Context from meeting transcript:
     return rag_chain
 
 
-def ask_question(rag_chain, question:str) -> str:
-    print(f"Question : {question}")
+def ask_question(rag_chain, question: str) -> str:
+    print(f"Question: {question}")
     answer = rag_chain.invoke(question)
-    print(f"answer :{answer}")
+    print(f"Answer: {answer}")
     return answer

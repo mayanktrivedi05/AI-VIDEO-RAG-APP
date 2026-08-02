@@ -47,13 +47,3 @@ def build_vector_store(transcript: str) -> Chroma:
 def load_vector_store() -> Chroma:
     global _CURRENT_VECTOR_STORE
     return _CURRENT_VECTOR_STORE
-
-
-def get_retriever(k: int = 3):
-    vector_store = load_vector_store()
-    if vector_store is None:
-        raise RuntimeError("Vector store is not initialized yet.")
-    return vector_store.as_retriever(
-        search_type = "similarity",
-        search_kwargs = {"k": k}
-    )
