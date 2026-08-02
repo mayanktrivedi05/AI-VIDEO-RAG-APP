@@ -1,0 +1,13 @@
+[server]
+headless = false
+enableCORS = false
+enableXsrfProtection = false
+fileWatcherType = "auto"
+
+
+[global]
+suppressDeprecationWarnings = true
+showWarningOnDirectExecution = false
+
+[runner]
+magicEnabled = true
