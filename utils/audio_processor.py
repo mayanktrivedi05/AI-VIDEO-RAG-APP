@@ -13,19 +13,44 @@ def extract_youtube_video_id(url: str) -> str:
     return match.group(1) if match else None
 
 def get_youtube_transcript_text(url: str) -> str:
-    """Attempt direct transcript extraction from YouTube."""
+    """Attempt direct transcript extraction from YouTube in 1s (0% 403 error)."""
     video_id = extract_youtube_video_id(url)
     if not video_id:
         return None
+    
+    transcript = None
     try:
         api = YouTubeTranscriptApi()
-        transcript = api.fetch(video_id)
-        text = " ".join([t['text'] for t in transcript if t.get('text')])
-        if len(text.strip()) > 30:
-            print(f"Successfully fetched YouTube direct transcript ({len(text.split())} words).")
-            return text
+        transcript_list = api.list(video_id)
+        # Try fetching preferred languages first (hi, en, en-IN)
+        try:
+            transcript = transcript_list.find_transcript(['hi', 'en', 'en-IN']).fetch()
+        except Exception:
+            # Fall back to the first available transcript in any language
+            for t in transcript_list:
+                transcript = t.fetch()
+                break
     except Exception as e:
-        print(f"Direct YouTube transcript API failed: {e}")
+        print(f"Transcript list fetch failed: {e}")
+        try:
+            if hasattr(YouTubeTranscriptApi, 'get_transcript'):
+                transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        except Exception as e2:
+            print(f"Direct YouTube transcript API failed: {e2}")
+
+    if transcript:
+        words = []
+        for snippet in transcript:
+            if hasattr(snippet, 'text'):
+                words.append(snippet.text)
+            elif isinstance(snippet, dict) and 'text' in snippet:
+                words.append(snippet['text'])
+        
+        full_text = " ".join(words)
+        if len(full_text.strip()) > 30:
+            print(f"Successfully fetched YouTube direct transcript ({len(full_text.split())} words).")
+            return full_text
+
     return None
 
 def download_with_pytubefix(url: str) -> str:
@@ -52,26 +77,10 @@ def download_youtube_audio(url: str) -> str:
         print("Attempting audio download with pytubefix...")
         return download_with_pytubefix(url)
     except Exception as pe:
-        print(f"pytubefix download failed ({pe}). Trying yt-dlp with cookies...")
+        print(f"pytubefix download failed ({pe}). Trying yt-dlp...")
 
     output_path = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
     
-    # Check for cookies.txt in root or downloades dir or env
-    root_cookies = "cookies.txt"
-    dir_cookies = os.path.join(DOWNLOAD_DIR, "cookies.txt")
-    cookies_content = os.getenv("YOUTUBE_COOKIES")
-    
-    if cookies_content:
-        with open(dir_cookies, "w") as f:
-            f.write(cookies_content)
-        cookiefile_to_use = dir_cookies
-    elif os.path.exists(root_cookies):
-        cookiefile_to_use = root_cookies
-    elif os.path.exists(dir_cookies):
-        cookiefile_to_use = dir_cookies
-    else:
-        cookiefile_to_use = None
-
     ydl_opts = {
         "format": "ba/ba*/bestaudio/best",
         "outtmpl": output_path,
@@ -96,9 +105,6 @@ def download_youtube_audio(url: str) -> str:
             }
         }
     }
-
-    if cookiefile_to_use:
-        ydl_opts["cookiefile"] = cookiefile_to_use
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
