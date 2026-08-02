@@ -11,11 +11,8 @@ load_dotenv()
 def run_pipeline(source :str, language :str = "english") -> dict:
     print("starting AI Video Assistant")
 
-    result_data, is_direct = process_input(source)
-    if is_direct:
-        transcript = result_data
-    else:
-        transcript = transcribe_all(result_data, language)
+    chunks = process_input(source)
+    transcript = transcribe_all(chunks, language)
     print(f"raw transcription (first 300 characters ) {transcript[:300]}")
 
     title = generate_title(transcript)
